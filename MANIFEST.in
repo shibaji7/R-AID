@@ -1,1 +1,1 @@
-recursive-include pynasonde *.toml
+recursive-include raid *.json

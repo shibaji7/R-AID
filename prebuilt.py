@@ -10,8 +10,8 @@ def clean():
         shutil.rmtree("dist/")
     if os.path.exists("build/"):
         shutil.rmtree("build/")
-    if os.path.exists("scubas.egg-info/"):
-        shutil.rmtree("scubas.egg-info/")
+    if os.path.exists("raid.egg-info/"):
+        shutil.rmtree("raid.egg-info/")
     os.system("find . -type d -name '.ipynb_checkpoints' -exec rm -rf {} +")
     os.system("find . -type d -name '__pycache__' -exec rm -rf {} +")
     return

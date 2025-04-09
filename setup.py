@@ -22,7 +22,8 @@ setup(
     author_email="chakras4@erau.edu",
     maintainer="Shibaji Chakraborty",
     maintainer_email="chakras4@erau.edu",
-    license="MIT License",
+    license="MIT",
+    license_files=["LICENSE"],
     description=long_description,
     long_description=long_description,
     install_requires=[],
@@ -33,6 +34,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.11",
         "Operating System :: OS Independent",
+        "License :: OSI Approved :: MIT License",
     ],
     url="https://github.com/shibaji7/R-AID",
 )
