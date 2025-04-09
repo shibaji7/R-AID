@@ -1,5 +1,5 @@
-site_name: Pynasonde Documentation
-repo_url: https://github.com/shibaji7/pynasonde
+site_name: R-AID Documentation
+repo_url: https://github.com/shibaji7/R-AID
 theme: 
   name: "material"
   logo: assets/Colab-pynasonde-logo2.jpg
@@ -49,9 +49,5 @@ extra_javascript:
 nav:
     - Home: index.md
     - Installation: user/install.md  
-    - Ionosonde Data Access: user/ionosonde.md
-    - VIPIR: user/vipir.md
-    - DIGISONDE: user/digisonde.md
-    - Citing: user/citing.md
-    - Toolbox: 
-            - ISCA: tools/isca.md
+    - Riometer Data Access: user/riometers.md
+    - HamSCI PSWS Data Access: user/hamsci.md
