@@ -102,7 +102,7 @@ To set the project interpreter to the anaconda environment:
     * Click "Existing Environment" and give the interpreter field the path to your environment's python.exe and apply.
 
 ## Local Install
-**R-AID3 install**
+**pip3 install**
 
 `pip3 install --user raid`
 
