@@ -11,10 +11,10 @@ setup(
     version="0.1",
     packages=find_packages(),
     package_dir={"raid": "raid"},
-    # package_data={
-    #     "pynasonde": ["config.toml"],
-    # },
-    # data_files=[("pynasonde", ["pynasonde/config.toml"])],
+    package_data={
+        "raid": ["config.json"],
+    },
+    data_files=[("raid", ["raid/config.json"])],
     include_package_data=True,
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
@@ -22,11 +22,11 @@ setup(
     author_email="chakras4@erau.edu",
     maintainer="Shibaji Chakraborty",
     maintainer_email="chakras4@erau.edu",
-    license="GNU GPL License",
+    license="MIT License",
     description=long_description,
     long_description=long_description,
     install_requires=[],
-    keywords=["python", "ionosonde"],
+    keywords=["python", "HF absorption"],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Education",
@@ -34,5 +34,5 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Operating System :: OS Independent",
     ],
-    url="https://github.com/shibaji7/pynasonde",
+    url="https://github.com/shibaji7/R-AID",
 )
