@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Remove IGRF
+igrf/*
+
 # Distribution / packaging
 .Python
 build/
