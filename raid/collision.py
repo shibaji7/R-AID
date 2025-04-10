@@ -11,6 +11,8 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "chakras4@erau.edu"
 __status__ = "Research"
 
+from raid.constant import pconst
+
 
 class Collision(object):
     """
@@ -18,19 +20,11 @@ class Collision(object):
 
     msise = msise module
     iri = IRI module
-    Ne = electron density
-    Te = electron temperature
-    Ti = ion temperature
     """
 
-    def __init__(self, msise, iri, Ne, Te, Ti, frac=1.0, _run_=False):
-        self.alts = np.arange(500)
-        self.Ne = Ne
-        self.Te = Te
-        self.Ti = Ti
+    def __init__(self, msise, iri, _run_=False):
         self.msise = msise
         self.iri = iri
-        self.frac = frac
         self.nu_FT = None
         self.nu_av_CC = None
         self.nu_av_MB = None
