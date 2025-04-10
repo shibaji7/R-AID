@@ -14,7 +14,6 @@ __status__ = "Research"
 import math
 
 import numpy as np
-import utils
 from constant import *
 from scipy.integrate import quad
 
@@ -290,8 +289,6 @@ class Absorption(object):
                         self.Bo[i, j], self.Ne[i, j], nu[i, j], self.fo, nu_sw_r=nu_sw_r
                     )
                 )
-                pass
-            pass
 
         # ==================================================
         # Using SN collistion frequency
@@ -309,8 +306,6 @@ class Absorption(object):
                         self.Bo[i, j], self.Ne[i, j], nu[i, j], self.fo, nu_sw_r=nu_sw_r
                     )
                 )
-                pass
-            pass
         return
 
     def estimate(self):

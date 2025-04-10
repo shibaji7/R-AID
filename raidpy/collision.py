@@ -11,7 +11,7 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "chakras4@erau.edu"
 __status__ = "Research"
 
-from raid.constant import pconst
+from raidpy.constant import pconst
 
 
 class Collision(object):
@@ -111,7 +111,6 @@ class Collision(object):
                     * lam
                     / (3 * np.sqrt(me) * (k * self.Te) ** (1.5))
                 )
-            pass
         self.nu_SN["ei"]["total"] = self.nu_SN["ei"]["O2+"] + self.nu_SN["ei"]["O+"]
         self.nu_SN["total"] = self.nu_SN["total"] + self.nu_SN["ei"]["total"]
         return

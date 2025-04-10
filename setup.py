@@ -7,14 +7,14 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name="raid",
+    name="raidpy",
     version="0.1",
     packages=find_packages(),
-    package_dir={"raid": "raid"},
+    package_dir={"raidpy": "raidpy"},
     package_data={
-        "raid": ["config.json"],
+        "raidpy": ["config.json"],
     },
-    data_files=[("raid", ["raid/config.json"])],
+    data_files=[("raidpy", ["raidpy/config.json"])],
     include_package_data=True,
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
