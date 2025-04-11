@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""oblique.py: Calculate absorption along the oblique path"""
+"""functions.py: Calculate absorption along the path"""
 
 __author__ = "Chakraborty, S."
 __copyright__ = "Chakraborty, S."
@@ -12,12 +12,14 @@ __email__ = "chakras4@erau.edu"
 __status__ = "Research"
 
 import datetime as dt
+import os
 
 import numpy as np
 from loguru import logger
 
 from raidpy import utils
 from raidpy.iono import Ionosphere2d
+from raidpy.plots import PlotOlRays
 
 
 class Oblique(object):
@@ -59,6 +61,17 @@ class Oblique(object):
         self.iono = Ionosphere2d(self.date, self.glats, self.glons, self.galts)
         return
 
+    def plot_absorption(self, mode="O", fig_path="figures/test_figures.png"):
+        logger.info(f"Plotting for {self.date}")
+        # pol = PlotOlRays()
+        dirc = fig_path.split("/")
+        if len(dirc) > 1:
+            os.makedirs("/".join(dirc[:-1]), exist_ok=True)
+        # pol.save(fig_path)
+        # pol.close()
+        logger.info(f"Saving files in {fig_path}")
+        return
+
 
 if __name__ == "__main__":
     bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
@@ -77,5 +90,6 @@ if __name__ == "__main__":
         bearing.olon,
         bearing.freq.ravel().tolist()[0],
     )
+    ol.plot_absorption()
     # print(rays[5.0].columns, bearing.__dict__.keys())
     pass
