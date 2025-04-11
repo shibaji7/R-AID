@@ -5,9 +5,9 @@ Disclaimer:
 
 -->
 
-If R-AID analysis contributes to a project that leads to a scientific publication, please acknowledge this fact by citing the papers listed below (if used).  
+If RAIDpy analysis contributes to a project that leads to a scientific publication, please acknowledge this fact by citing the papers listed below (if used).  
 
-# How to cite R-AID
+# How to cite RAIDpy
 - 
 
 # Publications using Pynasonde

@@ -14,8 +14,9 @@ __status__ = "Research"
 import math
 
 import numpy as np
-from constant import *
 from scipy.integrate import quad
+
+from raidpy.constant import *
 
 
 # ===================================================================================

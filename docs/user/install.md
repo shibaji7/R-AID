@@ -4,7 +4,7 @@ Author(s): Shibaji Chakraborty
 Disclaimer:
 -->
 
-# Installing R-AID 
+# Installing RAIDpy
 ---
 
 [![License: MIT](https://img.shields.io/badge/License%3A-MIT-green)](https://choosealicense.com/licenses/mit/) 
