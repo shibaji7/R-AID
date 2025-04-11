@@ -15,6 +15,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
+from geopy.distance import great_circle as GC
 from loguru import logger
 from scipy.io import loadmat
 
@@ -57,22 +58,33 @@ def load_rays_mat_file(file_loc: str):
         "nhops_attempted",
         "ray_label",
     ]
-    ray_data = []
+    ray_data, ray_path_data = [], dict()
     for i in range(sim_data["ray_data"].shape[1]):
-        r_data = dict()
+        r_data, p_data = dict(), dict()
         for key in ray_data_keys:
             r_data[key] = sim_data["ray_data"][0, i][key].ravel()[0]
+            if key == "initial_elev":
+                e = r_data[key]
+        for key in path_data_keys:
+            p_data[key] = sim_data["ray_path_data"][0, i][key].ravel()
+        ray_path_data[e] = pd.DataFrame.from_records(p_data)
         ray_data.append(r_data)
-    rays = pd.DataFrame.from_records(ray_data)
-    return rays
+    ray_data = pd.DataFrame.from_records(ray_data)
+    return ray_data, ray_path_data
 
 
 def create_lat_lon_from_routes(
     grange: np.array,
-    height: np.array,
-    bearing: float = None,
-    source: dict = dict(),
-    target: dict = dict(),
+    r_bearing: float,
+    olat: float,
+    olon: float,
 ):
-
-    return
+    lats, lons = [], []
+    p = (olat, olon)
+    gc = GC(p, p)
+    for d in grange:
+        x = gc.destination(p, r_bearing, distance=d)
+        lats.append(x[0])
+        lons.append(x[1])
+    lats, lons = np.array(lats), np.array(lons)
+    return lats, lons

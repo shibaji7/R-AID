@@ -32,7 +32,6 @@ class Oblique(object):
         self.height = height
         self.ion2d = ion2d
         self.igrf2d = igrf2d
-        # self.
         return
 
 
@@ -40,5 +39,11 @@ if __name__ == "__main__":
     bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
     bearing = utils.load_bearing_mat_file(bearing_file_loc)
     rays_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/1700_rt.mat"
-    rays = utils.load_rays_mat_file(rays_file_loc)
+    _, rays = utils.load_rays_mat_file(rays_file_loc)
+    glats, glons = utils.create_lat_lon_from_routes(
+        rays[5.0].ground_range, bearing.rb, bearing.olat, bearing.olon
+    )
+    galts = np.array(rays[5.0].height)
+    ol = Oblique()
+    print(len(rays[5.0]), bearing.__dict__.keys())
     pass
