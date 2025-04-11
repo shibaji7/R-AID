@@ -12,10 +12,12 @@ __email__ = "chakras4@erau.edu"
 __status__ = "Research"
 
 import math
+from dataclasses import dataclass
 
 import numpy as np
 from scipy.integrate import quad
 
+from raidpy.collision import Collision
 from raidpy.constant import *
 
 
@@ -111,10 +113,43 @@ def calculate_sw_OX_abs(Bo, Ne, nu, fo=30e6, nu_sw_r=1.0):
     return O, X
 
 
+@dataclass
+class Absorption:
+    mode_O: np.array = None
+    mode_X: np.array = None
+    mode_R: np.array = None
+    mode_L: np.array = None
+    mode_n: np.array = None
+
+
+@dataclass
+class AppletonHartree(Absorption):
+    ft: Absorption = None
+    sn: Absorption = None
+    av_cc: Absorption = None
+    av_mb: Absorption = None
+
+    @staticmethod
+    def init():
+        ah = AppletonHartree()
+        (ah.ft, ah.sn, ah.av_cc, ah.av_mb) = (
+            Absorption(),
+            Absorption(),
+            Absorption(),
+            Absorption(),
+        )
+        return ah
+
+
+@dataclass
+class SenWyller(Absorption):
+    ft: Absorption = None
+
+
 # ===================================================================================
 # This class is used to estimate O,X,R & L mode absorption height profile.
 # ===================================================================================
-class Absorption(object):
+class CalculateAbsorption(object):
     """
     This class is used to estimate O,X,R & L mode absorption height profile.
 
@@ -124,151 +159,167 @@ class Absorption(object):
     fo = operating frequency
     """
 
-    def __init__(self, Bo, coll, Ne, fo=30e6, nu_sw_r=1.0, _run_=True):
+    def __init__(
+        self, iri: dict, igrf: dict, coll: Collision, fo: float = 30e6, _run_=False
+    ):
         if _run_:
-            self.Bo = Bo
-            self.Ne = Ne
+            self.igrf = igrf
+            self.iri = iri
             self.coll = coll
             self.fo = fo
-            self.nu_sw_r = nu_sw_r
-            self.drap_abs = None
 
             self.w = 2 * np.pi * fo
             self.k = (2 * np.pi * fo) / pconst["c"]
-            self.AH = {
-                "FT": {
-                    "O": None,
-                    "X": None,
-                    "R": None,
-                    "L": None,
-                    "no": None,
-                },
-                "SN": {
-                    "O": None,
-                    "X": None,
-                    "R": None,
-                    "L": None,
-                },
-                "AV_CC": {
-                    "O": None,
-                    "X": None,
-                    "R": None,
-                    "L": None,
-                },
-                "AV_MB": {
-                    "O": None,
-                    "X": None,
-                    "R": None,
-                    "L": None,
-                },
-            }
-            self.SW = {
-                "FT": {
-                    "O": np.zeros(Bo.shape),
-                    "X": np.zeros(Bo.shape),
-                    "R": np.zeros(Bo.shape),
-                    "L": np.zeros(Bo.shape),
-                },
-                "SN": {
-                    "O": np.zeros(Bo.shape),
-                    "X": np.zeros(Bo.shape),
-                    "R": np.zeros(Bo.shape),
-                    "L": np.zeros(Bo.shape),
-                },
-            }
+            self.ah = AppletonHartree.init()
+            self.estimate_ah()
+            # self.SW = {
+            #     "FT": {
+            #         "O": np.zeros(Bo.shape),
+            #         "X": np.zeros(Bo.shape),
+            #         "R": np.zeros(Bo.shape),
+            #         "L": np.zeros(Bo.shape),
+            #     },
+            #     "SN": {
+            #         "O": np.zeros(Bo.shape),
+            #         "X": np.zeros(Bo.shape),
+            #         "R": np.zeros(Bo.shape),
+            #         "L": np.zeros(Bo.shape),
+            #     },
+            # }
             self.estimate()
         return
 
-    def estimate_AH(self):
+    def estimate_ah(self):
         # =========================================================
         # Using FT collision frequency
         # =========================================================
-        X, Z = (self.Ne * pconst["q_e"] ** 2) / (
-            pconst["eps0"] * pconst["m_e"] * self.w**2
-        ), self.coll.nu_FT / self.w
+        X, Z = (
+            (self.iri["edens"] * pconst["q_e"] ** 2)
+            / (pconst["eps0"] * pconst["m_e"] * self.w**2),
+            self.coll.nu_ft / self.w,
+        )
         x, jz = X, Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
-        self.AH["FT"]["no"] = np.abs(8.68 * self.k * 1e3 * n.imag)
+        self.ah.ft.no = np.abs(8.68 * self.k * 1e3 * n.imag)
 
-        YL, YT = 0, (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w)
-        nO, nX = np.sqrt(1 - (x / (1 - jz))), np.sqrt(
-            1 - ((2 * x * (1 - x - jz)) / ((2 * (1 - x - jz) * (1 - jz)) - (2 * YT**2)))
+        YL, YT = 0, (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w)
+        nO, nX = (
+            np.sqrt(1 - (x / (1 - jz))),
+            np.sqrt(
+                1
+                - (
+                    (2 * x * (1 - x - jz))
+                    / ((2 * (1 - x - jz) * (1 - jz)) - (2 * YT**2))
+                )
+            ),
         )
-        self.AH["FT"]["O"], self.AH["FT"]["X"] = np.abs(
-            8.68 * self.k * 1e3 * nO.imag
-        ), np.abs(8.68 * self.k * 1e3 * nX.imag)
+        self.ah.ft.mode_O, self.ah.ft.mode_X = (
+            np.abs(8.68 * self.k * 1e3 * nO.imag),
+            np.abs(8.68 * self.k * 1e3 * nX.imag),
+        )
 
-        YL, YT = (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w), 0
+        YL, YT = (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w), 0
         nL, nR = np.sqrt(1 - (x / ((1 - jz) + YL))), np.sqrt(1 - (x / ((1 - jz) - YL)))
-        self.AH["FT"]["R"], self.AH["FT"]["L"] = np.abs(
-            8.68 * self.k * 1e3 * nR.imag
-        ), np.abs(8.68 * self.k * 1e3 * nL.imag)
+        self.ah.ft.mode_R, self.ah.ft.mode_L = (
+            np.abs(8.68 * self.k * 1e3 * nR.imag),
+            np.abs(8.68 * self.k * 1e3 * nL.imag),
+        )
 
         # ========================================================
         # Using SN collision frequency  quite_model
         # ========================================================
-        Z = self.coll.nu_SN["total"] / self.w
+        Z = self.coll.nu_sn["total"] / self.w
         jz = Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
-        self.AH["SN"]["no"] = np.abs(8.68 * self.k * 1e3 * n.imag)
+        self.ah.sn.no = np.abs(8.68 * self.k * 1e3 * n.imag)
 
-        YL, YT = 0, (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w)
-        nO, nX = np.sqrt(1 - (x / (1 - jz))), np.sqrt(
-            1 - ((2 * x * (1 - x - jz)) / ((2 * (1 - x - jz) * (1 - jz)) - (2 * YT**2)))
+        YL, YT = 0, (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w)
+        nO, nX = (
+            np.sqrt(1 - (x / (1 - jz))),
+            np.sqrt(
+                1
+                - (
+                    (2 * x * (1 - x - jz))
+                    / ((2 * (1 - x - jz) * (1 - jz)) - (2 * YT**2))
+                )
+            ),
         )
-        self.AH["SN"]["O"], self.AH["SN"]["X"] = np.abs(
-            8.68 * self.k * 1e3 * nO.imag
-        ), np.abs(8.68 * self.k * 1e3 * nX.imag)
+        self.ah.sn.mode_O, self.ah.sn.mode_X = (
+            np.abs(8.68 * self.k * 1e3 * nO.imag),
+            np.abs(8.68 * self.k * 1e3 * nX.imag),
+        )
 
         YL, YT = (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w), 0
         nL, nR = np.sqrt(1 - (x / ((1 - jz) + YL))), np.sqrt(1 - (x / ((1 - jz) - YL)))
-        self.AH["SN"]["R"], self.AH["SN"]["L"] = np.abs(
-            8.68 * self.k * 1e3 * nR.imag
-        ), np.abs(8.68 * self.k * 1e3 * nL.imag)
+        self.ah.sn.mode_R, self.ah.sn.mode_L = (
+            np.abs(8.68 * self.k * 1e3 * nR.imag),
+            np.abs(8.68 * self.k * 1e3 * nL.imag),
+        )
 
         # =========================================================
         # Using AV_CC collision frequency quite_model
         # =========================================================
-        Z = self.coll.nu_av_CC / self.w
+        Z = self.coll.nu_av_cc / self.w
         jz = Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
-        self.AH["AV_CC"]["no"] = np.abs(8.68 * self.k * 1e3 * n.imag)
+        self.ah.av_cc.no = np.abs(8.68 * self.k * 1e3 * n.imag)
 
-        YL, YT = 0, (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w)
-        nO, nX = np.sqrt(1 - (x / (1 - jz))), np.sqrt(
-            1 - ((2 * x * (1 - x - jz)) / ((2 * (1 - x - jz) * (1 - jz)) - (2 * YT**2)))
+        YL, YT = (0, (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w))
+        nO, nX = (
+            np.sqrt(1 - (x / (1 - jz))),
+            np.sqrt(
+                1
+                - (
+                    (2 * x * (1 - x - jz))
+                    / ((2 * (1 - x - jz) * (1 - jz)) - (2 * YT**2))
+                )
+            ),
         )
-        self.AH["AV_CC"]["O"], self.AH["AV_CC"]["X"] = np.abs(
-            8.68 * self.k * 1e3 * nO.imag
-        ), np.abs(8.68 * self.k * 1e3 * nX.imag)
+        self.ah.av_cc.mode_O, self.ah.av_cc.mode_X = (
+            np.abs(8.68 * self.k * 1e3 * nO.imag),
+            np.abs(8.68 * self.k * 1e3 * nX.imag),
+        )
 
-        YL, YT = (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w), 0
+        YL, YT = (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w), 0
         nL, nR = np.sqrt(1 - (x / ((1 - jz) + YL))), np.sqrt(1 - (x / ((1 - jz) - YL)))
-        self.AH["AV_CC"]["R"], self.AH["AV_CC"]["L"] = np.abs(
-            8.68 * self.k * 1e3 * nR.imag
-        ), np.abs(8.68 * self.k * 1e3 * nL.imag)
+        self.ah.av_cc.mode_R, self.ah.av_cc.mode_L = (
+            np.abs(8.68 * self.k * 1e3 * nR.imag),
+            np.abs(8.68 * self.k * 1e3 * nL.imag),
+        )
 
         # =========================================================
         # Using AV_MB collision frequency quite_model
         # =========================================================
-        Z = self.coll.nu_av_MB / self.w
+        Z = self.coll.nu_av_mb / self.w
         jz = Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
-        self.AH["AV_MB"]["no"] = np.abs(8.68 * self.k * 1e3 * n.imag)
+        self.ah.av_mb.no = np.abs(8.68 * self.k * 1e3 * n.imag)
 
-        YL, YT = 0, (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w)
-        nO, nX = np.sqrt(1 - (x / (1 - jz))), np.sqrt(
-            1 - ((2 * x * (1 - x - jz)) / ((2 * (1 - x - jz) * (1 - jz)) - (2 * YT**2)))
+        YL, YT = 0, (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w)
+        nO, nX = (
+            np.sqrt(1 - (x / (1 - jz))),
+            np.sqrt(
+                1
+                - (
+                    (2 * x * (1 - x - jz))
+                    / ((2 * (1 - x - jz) * (1 - jz)) - (2 * YT**2))
+                )
+            ),
         )
-        self.AH["AV_MB"]["O"], self.AH["AV_MB"]["X"] = np.abs(
-            8.68 * self.k * 1e3 * nO.imag
-        ), np.abs(8.68 * self.k * 1e3 * nX.imag)
+        self.ah.av_mb.mode_O, self.ah.av_mb.mode_X = (
+            np.abs(8.68 * self.k * 1e3 * nO.imag),
+            np.abs(8.68 * self.k * 1e3 * nX.imag),
+        )
 
-        YL, YT = (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w), 0
-        nL, nR = np.sqrt(1 - (x / ((1 - jz) + YL))), np.sqrt(1 - (x / ((1 - jz) - YL)))
-        self.AH["AV_MB"]["R"], self.AH["AV_MB"]["L"] = np.abs(
-            8.68 * self.k * 1e3 * nR.imag
-        ), np.abs(8.68 * self.k * 1e3 * nL.imag)
+        YL, YT = (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w), 0
+        nL, nR = (
+            np.sqrt(1 - (x / ((1 - jz) + YL))),
+            np.sqrt(1 - (x / ((1 - jz) - YL))),
+        )
+        self.ah.av_mb.mode_R, self.ah.av_mb.mode_L = (
+            np.abs(8.68 * self.k * 1e3 * nR.imag),
+            np.abs(8.68 * self.k * 1e3 * nL.imag),
+        )
         return
 
     def estimate_SW(self):
@@ -307,9 +358,4 @@ class Absorption(object):
                         self.Bo[i, j], self.Ne[i, j], nu[i, j], self.fo, nu_sw_r=nu_sw_r
                     )
                 )
-        return
-
-    def estimate(self):
-        self.estimate_AH()
-        self.estimate_SW()
         return

@@ -16,6 +16,7 @@ import datetime as dt
 import numpy as np
 from loguru import logger
 
+from raidpy.collision import ComputeCollision
 from raidpy.ionosphere.igrf13 import IGRF2d
 from raidpy.ionosphere.iri import IRI2d
 from raidpy.ionosphere.msise import MSISE2d
@@ -76,6 +77,9 @@ class Ionosphere2d(object):
             self.lats,
             self.lons,
             self.alts,
+        )
+        self.cc = ComputeCollision(
+            self.msise_block.msise, self.iri_block.iri, date=self.date, _run_=True
         )
         return
 

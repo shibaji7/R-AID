@@ -12,9 +12,9 @@ setup(
     packages=find_packages(),
     package_dir={"raidpy": "raidpy"},
     package_data={
-        "raidpy": ["config.json"],
+        "raidpy": [],
     },
-    data_files=[("raidpy", ["raidpy/config.json"])],
+    data_files=[("raidpy", [])],
     include_package_data=True,
     use_scm_version=True,
     setup_requires=["setuptools_scm"],

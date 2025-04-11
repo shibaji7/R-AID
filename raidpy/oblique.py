@@ -19,8 +19,20 @@ class Oblique(object):
     This class takes PHaRLAP rays as input and computes absorption along the path
     """
 
-    def __init__(self, grange: np.array, height: np.array, edens: np.array = None):
+    def __init__(
+        self,
+        grange: np.array,
+        height: np.array,
+        ion2d: dict,
+        igrf2d: dict,
+    ):
         self.grange = grange
         self.height = height
-        self.edens = edens
+        self.ion2d = ion2d
+        self.igrf2d = igrf2d
+        # self.
         return
+
+
+if __name__ == "__main__":
+    pass

@@ -42,13 +42,13 @@ class IGRF2d(object):
         lats: np.array,
         lons: np.array,
         alts: np.array,
-        iri_version: int = 20,
+        to_Tesla: bool = True,
     ):
         self.date = date
         self.lats = lats
         self.lons = lons
         self.alts = alts
-        self.iri_version = iri_version
+        self.to_Tesla = to_Tesla
         self.compute()
         return
 
@@ -74,6 +74,11 @@ class IGRF2d(object):
             )
             for i, key in enumerate(self.igrf.keys()):
                 self.igrf[key][j] = mag.variables[key][0]
+        if self.to_Tesla:
+            self.igrf["north"] *= 1e-9
+            self.igrf["east"] *= 1e-9
+            self.igrf["down"] *= 1e-9
+            self.igrf["total"] *= 1e-9
         return
 
 

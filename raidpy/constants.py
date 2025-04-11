@@ -11,6 +11,8 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "chakras4@erau.edu"
 __status__ = "Research"
 
+import numpy as np
+
 """
 Physical constants
 """
