@@ -13,6 +13,8 @@ __status__ = "Research"
 
 import numpy as np
 
+from raidpy import utils
+
 
 class Oblique(object):
     """
@@ -35,4 +37,8 @@ class Oblique(object):
 
 
 if __name__ == "__main__":
+    bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
+    bearing = utils.load_bearing_mat_file(bearing_file_loc)
+    rays_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/1700_rt.mat"
+    rays = utils.load_rays_mat_file(rays_file_loc)
     pass

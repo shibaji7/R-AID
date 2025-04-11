@@ -16,6 +16,7 @@ import datetime as dt
 import numpy as np
 from loguru import logger
 
+from raidpy.absorption import CalculateAbsorption
 from raidpy.collision import ComputeCollision
 from raidpy.ionosphere.igrf13 import IGRF2d
 from raidpy.ionosphere.iri import IRI2d
@@ -42,6 +43,7 @@ class Ionosphere2d(object):
         lats: np.array,
         lons: np.array,
         alts: np.array,
+        fo: float = 5e6,  # in Hz
         iri_version: int = 20,
     ):
         self.date = date
@@ -49,6 +51,7 @@ class Ionosphere2d(object):
         self.lons = lons
         self.alts = alts
         self.iri_version = iri_version
+        self.fo = fo
         self.compute()
         return
 
@@ -80,6 +83,13 @@ class Ionosphere2d(object):
         )
         self.cc = ComputeCollision(
             self.msise_block.msise, self.iri_block.iri, date=self.date, _run_=True
+        )
+        self.ca = CalculateAbsorption(
+            self.iri_block.iri,
+            self.igrf_block.igrf,
+            self.cc.collision,
+            fo=self.fo,
+            _run_=True,
         )
         return
 

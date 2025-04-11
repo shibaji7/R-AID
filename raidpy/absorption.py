@@ -18,7 +18,7 @@ import numpy as np
 from scipy.integrate import quad
 
 from raidpy.collision import Collision
-from raidpy.constant import *
+from raidpy.constants import *
 
 
 # ===================================================================================
@@ -60,11 +60,11 @@ def calculate_sw_RL_abs(Bo, Ne, nu, fo=30e6, nu_sw_r=1.0):
         yo, yx = (w + wh) / nu_sw, (w - wh) / nu_sw
         nL = 1 - (
             (Ne * pconst["q_e"] ** 2 / (2 * pconst["m_e"] * w * pconst["eps0"] * nu_sw))
-            * np.complex(yo * C(1.5, yo), 2.5 * C(2.5, yo))
+            * np.complex_(yo * C(1.5, yo) + (1j * 2.5 * C(2.5, yo)))
         )
         nR = 1 - (
             (Ne * pconst["q_e"] ** 2 / (2 * pconst["m_e"] * w * pconst["eps0"] * nu_sw))
-            * np.complex(yx * C(1.5, yx), 2.5 * C(2.5, yx))
+            * np.complex_(yx * C(1.5, yx) + (1j * 2.5 * C(2.5, yx)))
         )
         R, L = np.abs(nR.imag * 8.68 * k * 1e3), np.abs(nL.imag * 8.68 * k * 1e3)
     else:
@@ -145,6 +145,12 @@ class AppletonHartree(Absorption):
 class SenWyller(Absorption):
     ft: Absorption = None
 
+    @staticmethod
+    def init():
+        sw = SenWyller()
+        sw.ft = Absorption()
+        return sw
+
 
 # ===================================================================================
 # This class is used to estimate O,X,R & L mode absorption height profile.
@@ -162,31 +168,17 @@ class CalculateAbsorption(object):
     def __init__(
         self, iri: dict, igrf: dict, coll: Collision, fo: float = 30e6, _run_=False
     ):
+        self.igrf = igrf
+        self.iri = iri
+        self.coll = coll
+        self.fo = fo
+        self.w = 2 * np.pi * fo
+        self.k = (2 * np.pi * fo) / pconst["c"]
         if _run_:
-            self.igrf = igrf
-            self.iri = iri
-            self.coll = coll
-            self.fo = fo
-
-            self.w = 2 * np.pi * fo
-            self.k = (2 * np.pi * fo) / pconst["c"]
             self.ah = AppletonHartree.init()
+            self.sw = SenWyller.init()
             self.estimate_ah()
-            # self.SW = {
-            #     "FT": {
-            #         "O": np.zeros(Bo.shape),
-            #         "X": np.zeros(Bo.shape),
-            #         "R": np.zeros(Bo.shape),
-            #         "L": np.zeros(Bo.shape),
-            #     },
-            #     "SN": {
-            #         "O": np.zeros(Bo.shape),
-            #         "X": np.zeros(Bo.shape),
-            #         "R": np.zeros(Bo.shape),
-            #         "L": np.zeros(Bo.shape),
-            #     },
-            # }
-            self.estimate()
+            self.estimate_sw()
         return
 
     def estimate_ah(self):
@@ -228,7 +220,7 @@ class CalculateAbsorption(object):
         # ========================================================
         # Using SN collision frequency  quite_model
         # ========================================================
-        Z = self.coll.nu_sn["total"] / self.w
+        Z = self.coll.nu_sn.total / self.w
         jz = Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
         self.ah.sn.no = np.abs(8.68 * self.k * 1e3 * n.imag)
@@ -249,7 +241,7 @@ class CalculateAbsorption(object):
             np.abs(8.68 * self.k * 1e3 * nX.imag),
         )
 
-        YL, YT = (pconst["q_e"] * self.Bo) / (pconst["m_e"] * self.w), 0
+        YL, YT = (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w), 0
         nL, nR = np.sqrt(1 - (x / ((1 - jz) + YL))), np.sqrt(1 - (x / ((1 - jz) - YL)))
         self.ah.sn.mode_R, self.ah.sn.mode_L = (
             np.abs(8.68 * self.k * 1e3 * nR.imag),
@@ -322,40 +314,31 @@ class CalculateAbsorption(object):
         )
         return
 
-    def estimate_SW(self):
-        I, J = self.Bo.shape
-        nu_sw_r = self.nu_sw_r  # * np.random.uniform(0)
+    def estimate_sw(self):
+        Bo = self.igrf["total"]
+        n = len(Bo)
         # ===================================================
         # Using FT collistion frequency
         # ===================================================
-        nu = self.coll.nu_FT
-        for i in range(I):
-            for j in range(J):
-                self.SW["FT"]["O"][i, j], self.SW["FT"]["X"][i, j] = (
-                    calculate_sw_OX_abs(
-                        self.Bo[i, j], self.Ne[i, j], nu[i, j], self.fo, nu_sw_r=nu_sw_r
-                    )
-                )
-                self.SW["FT"]["R"][i, j], self.SW["FT"]["L"][i, j] = (
-                    calculate_sw_RL_abs(
-                        self.Bo[i, j], self.Ne[i, j], nu[i, j], self.fo, nu_sw_r=nu_sw_r
-                    )
-                )
-
-        # ==================================================
-        # Using SN collistion frequency
-        # ==================================================
-        nu = self.coll.nu_SN["total"]
-        for i in range(I):
-            for j in range(J):
-                self.SW["SN"]["O"][i, j], self.SW["SN"]["X"][i, j] = (
-                    calculate_sw_OX_abs(
-                        self.Bo[i, j], self.Ne[i, j], nu[i, j], self.fo, nu_sw_r=nu_sw_r
-                    )
-                )
-                self.SW["SN"]["R"][i, j], self.SW["SN"]["L"][i, j] = (
-                    calculate_sw_RL_abs(
-                        self.Bo[i, j], self.Ne[i, j], nu[i, j], self.fo, nu_sw_r=nu_sw_r
-                    )
-                )
+        nu = self.coll.nu_ft
+        (
+            self.sw.ft.mode_O,
+            self.sw.ft.mode_X,
+            self.sw.ft.mode_R,
+            self.sw.ft.mode_L,
+            self.sw.ft.mode_no,
+        ) = (
+            np.zeros_like(Bo),
+            np.zeros_like(Bo),
+            np.zeros_like(Bo),
+            np.zeros_like(Bo),
+            np.zeros_like(Bo),
+        )
+        for i in range(n):
+            self.sw.ft.mode_O[i], self.sw.ft.mode_X[i] = calculate_sw_OX_abs(
+                Bo[i], self.iri["edens"][i], nu[i], self.fo
+            )
+            self.sw.ft.mode_R[i], self.sw.ft.mode_L[i] = calculate_sw_RL_abs(
+                Bo[i], self.iri["edens"][i], nu[i], self.fo
+            )
         return
