@@ -15,6 +15,7 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
+from loguru import logger
 from scipy.integrate import quad
 
 from raidpy.collision import Collision
@@ -175,6 +176,7 @@ class CalculateAbsorption(object):
         self.w = 2 * np.pi * fo
         self.k = (2 * np.pi * fo) / pconst["c"]
         if _run_:
+            logger.info(f"Running absorption calculations....")
             self.ah = AppletonHartree.init()
             self.sw = SenWyller.init()
             self.estimate_ah()
