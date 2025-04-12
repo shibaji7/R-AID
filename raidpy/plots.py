@@ -71,7 +71,7 @@ class PlotOlRays(object):
             cmap, label, norm = (
                 "Reds",
                 r"$\beta$, dB",
-                colors.Normalize(0, 0.1),
+                colors.Normalize(0, 1e-2),
             )
         return cmap, label, norm
 

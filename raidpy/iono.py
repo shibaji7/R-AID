@@ -52,16 +52,11 @@ class Ionosphere2d(object):
         self.alts = alts
         self.iri_version = iri_version
         self.fo = fo
-        self.compute()
+        self.initl()
         return
 
-    def compute(
-        self,
-    ):
-        """
-        Run Ionosphere codes
-        """
-        logger.info(f"Running ionosphere on {self.date}")
+    def initl(self):
+        logger.info(f"Initialize ionosphere on {self.date}")
         self.iri_block = IRI2d(
             self.date,
             self.lats,
@@ -81,6 +76,15 @@ class Ionosphere2d(object):
             self.lons,
             self.alts,
         )
+        return
+
+    def compute(
+        self,
+    ):
+        """
+        Run Ionosphere codes
+        """
+        logger.info(f"Running ionosphere on {self.date}")
         self.cc = ComputeCollision(
             self.msise_block.msise, self.iri_block.iri, date=self.date, _run_=True
         )

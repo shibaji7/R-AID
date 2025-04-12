@@ -63,7 +63,9 @@ class Oblique(object):
         self.galts = np.array(self.height)
         self.iono = Ionosphere2d(self.date, self.glats, self.glons, self.galts, self.fo)
         if self.edens is not None:
+            logger.info(f"change e-dens")
             self.iono.iri_block.iri["edens"] = self.edens
+        self.iono.compute()
         self.ray = pd.DataFrame()
         self.ray["grange"], self.ray["height"] = self.grange, self.height
         return
@@ -96,10 +98,10 @@ class Oblique(object):
 
 
 if __name__ == "__main__":
-    bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_10MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
+    bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
     bearing = utils.load_bearing_mat_file(bearing_file_loc)
-    rays_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_10MHz_SCurve/2024-04-08/wwv/sami3/w2naf/1700_rt.mat"
-    elv = 30
+    rays_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/1700_rt.mat"
+    elv = 12
     _, rays = utils.load_rays_mat_file(rays_file_loc)
     ray = rays[elv]
     ol = Oblique(
@@ -110,9 +112,12 @@ if __name__ == "__main__":
         bearing.olat,
         bearing.olon,
         bearing.freq.ravel().tolist()[0] * 1e6,
+        edens=np.array(ray.electron_density) * 1e6,  # To /m3
     )
     ol.plot_absorption(
         np.array(ray.phase_path),
-        text=r"Spot: wwv-w2naf / 10 Mhz, $\alpha=30^\circ$ / $\beta=\beta_{ah}(\nu_{sn})$",
+        wave_disp_reltn="ah",
+        col_freq="av_mb",
+        text=r"Spot: wwv-w2naf / 5 Mhz, $\alpha=12^\circ$ / $\beta=\beta_{ah}(\nu_{av-mb})$",
     )
     pass

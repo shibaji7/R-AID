@@ -5,7 +5,7 @@ Disclaimer:
 
 -->
 
-# RAIDpy: Radiowave Absoprtion Ionospheric Diagonestics
+# raidpy: Radiowave Absoprtion Ionospheric Diagonestics
 <div style="text-align: center;">
   <img src="assets/Colab-pynasonde-logo2.jpg" alt="R-AID" width="50%">
 </div>
