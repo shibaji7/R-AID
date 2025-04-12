@@ -7,7 +7,7 @@ Disclaimer:
 
 # raidpy: Radiowave Absoprtion Ionospheric Diagonestics
 <div style="text-align: center;">
-  <img src="assets/Colab-pynasonde-logo2.jpg" alt="R-AID" width="50%">
+  <img src="assets/RAID-2.png" alt="R-AID" width="50%">
 </div>
 
 [![License: MIT](https://img.shields.io/badge/License%3A-MIT-green)](https://choosealicense.com/licenses/mit/) 
