@@ -120,4 +120,3 @@ if __name__ == "__main__":
         col_freq="av_mb",
         text=r"Spot: wwv-w2naf / 5 Mhz, $\alpha=12^\circ$ / $\beta=\beta_{ah}(\nu_{av-mb})$",
     )
-    pass

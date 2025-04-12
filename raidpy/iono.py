@@ -105,4 +105,3 @@ if __name__ == "__main__":
         np.array([0, 1, 3]),
         np.array([100, 200, 300]),
     )
-    pass

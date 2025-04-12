@@ -233,4 +233,3 @@ if __name__ == "__main__":
     cc = ComputeCollision(
         ion.msise_block.msise, ion.iri_block.iri, date=ion.date, _run_=True
     )
-    pass
