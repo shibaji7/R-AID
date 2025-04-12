@@ -97,7 +97,7 @@ class ComputeCollision(object):
         logger.info(
             f"Compute the Friedrich-Tonker electron neutral collision frequency // with a={frac}"
         )
-        p = self.msise["nn"] * self.msise["Tn"] * pconst["boltz"]
+        p = self.msise["t_nn"] * self.msise["Tn"] * pconst["boltz"]
         nu = (2.637e6 / np.sqrt(self.iri["etemp"]) + 4.945e5) * p
         cfr = frac * nu
         return cfr
@@ -110,7 +110,7 @@ class ComputeCollision(object):
 
         nu <float> = collision frequency
         """
-        nu = 3.8e-11 * self.msise["nn"]
+        nu = 3.8e-11 * self.msise["t_nn"]
         return nu
 
     def calculate_SN_ei_collision_frequency(self, gamma=0.5572, zi=2):

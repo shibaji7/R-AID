@@ -46,7 +46,7 @@ class MSISE2d(object):
         """
         run pymsise
         """
-        keys = ["nn", "N2", "O2", "O", "He", "H", "Ar", "O_Anomalous", "NO", "Tn"]
+        keys = ["nn", "N2", "O2", "O", "He", "H", "Ar", "N", "O_Anomalous", "NO", "Tn"]
         n = len(self.alts)
         self.msise = dict(
             nn=np.zeros((n)),  # in km/m3
@@ -56,8 +56,10 @@ class MSISE2d(object):
             He=np.zeros((n)),  # in /m3
             H=np.zeros((n)),  # in /m3
             Ar=np.zeros((n)),  # in /m3
+            N=np.zeros((n)),  # in /m3
             O_Anomalous=np.zeros((n)),  # in /m3
             NO=np.zeros((n)),  # in /m3
+            t_nn=np.zeros((n)),  # in /m3
             Tn=np.zeros((n)),  # in K
         )
         logger.info(f"Running pymsise00 on {self.date}")
@@ -65,6 +67,7 @@ class MSISE2d(object):
             x = pymsis.calculate([self.date], [lat], [lon], [alt])
             for i, key in enumerate(keys):
                 self.msise[key][j] = x[0, i]
+            self.msise["t_nn"][j] = np.nansum(x[0, 1:-2])
         return
 
 

@@ -40,6 +40,7 @@ class Oblique(object):
         ion2d: dict = None,
         igrf2d: dict = None,
         msise: dict = None,
+        edens: np.array = None,
     ):
         self.date = date
         self.grange = grange
@@ -47,6 +48,7 @@ class Oblique(object):
         self.ray_bearing = ray_bearing
         self.origin_lat = origin_lat
         self.origin_lon = origin_lon
+        self.edens = edens
         self.fo = fo
         self.ion2d = ion2d
         self.igrf2d = igrf2d
@@ -59,17 +61,31 @@ class Oblique(object):
             self.grange, self.ray_bearing, self.origin_lat, self.origin_lon
         )
         self.galts = np.array(self.height)
-        self.iono = Ionosphere2d(self.date, self.glats, self.glons, self.galts)
+        self.iono = Ionosphere2d(self.date, self.glats, self.glons, self.galts, self.fo)
+        if self.edens is not None:
+            self.iono.iri_block.iri["edens"] = self.edens
         self.ray = pd.DataFrame()
         self.ray["grange"], self.ray["height"] = self.grange, self.height
         return
 
-    def plot_absorption(self, mode="O", fig_path="figures/test_figures.png", text=None):
-        logger.info(f"Plotting for {self.date}")
+    def plot_absorption(
+        self,
+        phase_path: np.array,
+        wave_disp_reltn: str = "ah",
+        col_freq: str = "sn",
+        mode: str = "O",
+        fig_path: str = "figures/test_figures.png",
+        text: str = None,
+    ):
+        logger.info(f"Plotting for {self.date} for {wave_disp_reltn}:{col_freq}")
         pol = PlotOlRays(self.date)
-        self.ray["abs"] = getattr(self.iono.ca.ah.sn, f"mode_{mode}")
-        # self.ray.fillna(0, inplace=True)
-        pol.lay_rays(self.ray, text=text)
+        self.ray["abs"] = getattr(
+            getattr(getattr(self.iono.ca, wave_disp_reltn), col_freq), f"mode_{mode}"
+        )
+        o = self.ray.copy().fillna(0)
+        total_absorption = np.trapz(o["abs"], phase_path)
+        logger.info(f"Total absorption {total_absorption} dB")
+        pol.lay_rays(self.ray, text=text + r" / $\int\beta$=%.1f dB" % total_absorption)
         dirc = fig_path.split("/")
         if len(dirc) > 1:
             os.makedirs("/".join(dirc[:-1]), exist_ok=True)
@@ -80,10 +96,10 @@ class Oblique(object):
 
 
 if __name__ == "__main__":
-    bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
+    bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_10MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
     bearing = utils.load_bearing_mat_file(bearing_file_loc)
-    rays_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/1700_rt.mat"
-    elv = 5
+    rays_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_10MHz_SCurve/2024-04-08/wwv/sami3/w2naf/1700_rt.mat"
+    elv = 30
     _, rays = utils.load_rays_mat_file(rays_file_loc)
     ray = rays[elv]
     ol = Oblique(
@@ -93,8 +109,10 @@ if __name__ == "__main__":
         bearing.rb,
         bearing.olat,
         bearing.olon,
-        bearing.freq.ravel().tolist()[0],
+        bearing.freq.ravel().tolist()[0] * 1e6,
     )
-    ol.plot_absorption()
-    # print(rays[5.0].columns, bearing.__dict__.keys())
+    ol.plot_absorption(
+        np.array(ray.phase_path),
+        text=r"Spot: wwv-w2naf / 10 Mhz, $\alpha=30^\circ$ / $\beta=\beta_{ah}(\nu_{sn})$",
+    )
     pass
