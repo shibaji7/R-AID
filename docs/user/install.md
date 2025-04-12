@@ -33,7 +33,7 @@ You can check your python version using
 `$ python3 --version`
 
 !!! Note
-    If you have already installed `R-AID` you can use `pip3 install --upgrade raid`
+    If you have already installed `R-AID` you can use `pip3 install --upgrade raidpy`
 
 ## Dependencies
 
@@ -77,7 +77,7 @@ Instructions can be found here [virtual environment](https://packaging.python.or
 1. `$ python3 -m pip install --user virtualenv` (Install virtual environment package)
 2. `$ python3 -m virtualenv <environment name>`  (Make your virtual environment)
 3. `$ source <environment name>/bin/activate`  (Activate the virtual environment)
-4. `$ pip install raid`    (Install R-AID)
+4. `$ pip install raidpy`    (Install R-AID)
 
 !!! Note
     If you have multiple versions of python 3 on your machine, you can access a specific version by: `python<version number>`. 
@@ -88,7 +88,7 @@ Instructions can be found here [conda environment](https://uoa-eresearch.github.
 
 1. `$ conda create -n yourenvname python=3.11 anaconda`
 2. `$ conda activate yourenvname`
-3. `$ pip install raid`
+3. `$ pip install raidpy`
 
 #### Adding the environment to PyCharm
 
@@ -104,7 +104,7 @@ To set the project interpreter to the anaconda environment:
 ## Local Install
 **pip3 install**
 
-`pip3 install --user raid`
+`pip3 install --user raidpy`
 
 ## System Install 
-`sudo pip3 install raid`
+`sudo pip3 install raidpy`
