@@ -5,6 +5,14 @@ import os
 import shutil
 
 
+def setup_igrf():
+    os.system("git clone https://github.com/space-physics/igrf")
+    os.chdir("igrf/")
+    os.system("python -m pip install -e .")
+    if os.path.exists("igrf/.git"):
+        shutil.rmtree("igrf/.git")
+    return
+
 def clean():
     if os.path.exists("dist/"):
         shutil.rmtree("dist/")
