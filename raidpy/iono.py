@@ -96,6 +96,13 @@ class Ionosphere2d(object):
             fo=self.fo,
             _run_=True,
         )
+        self.cp = CalculatePhase(
+            self.iri_block.iri,
+            self.igrf_block.igrf,
+            self.cc.collision,
+            fo=self.fo,
+            _run_=True,
+        )
         return
 
 

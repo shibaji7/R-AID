@@ -178,7 +178,7 @@ class CalculatePhase(object):
         self.w = 2 * np.pi * fo
         self.k = (2 * np.pi * fo) / pconst["c"]
         if _run_:
-            logger.info(f"Running absorption calculations....")
+            logger.info(f"Running phase calculations....")
             self.ah = AppletonHartree.init()
             self.sw = SenWyller.init()
             self.estimate_ah()

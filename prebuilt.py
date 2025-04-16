@@ -6,6 +6,8 @@ import shutil
 
 
 def setup_igrf():
+    if os.path.exists("igrf"):
+        shutil.rmtree("igrf")
     os.system("git clone https://github.com/space-physics/igrf")
     os.chdir("igrf/")
     os.system("python -m pip install -e .")
@@ -46,6 +48,9 @@ def uplaod_pip():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "-i", "--igrf_build", action="store_true", help="Build the IGRF from scratch"
+    )
+    parser.add_argument(
         "-b", "--build", action="store_true", help="Build the project from scratch"
     )
     parser.add_argument(
@@ -64,6 +69,8 @@ if __name__ == "__main__":
         help="Upload code to PIP repository",
     )
     args = parser.parse_args()
+    if args.igrf_build:
+        setup_igrf()
     if args.clean:
         clean()
     if args.build:
