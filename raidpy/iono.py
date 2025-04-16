@@ -21,6 +21,7 @@ from raidpy.collision import ComputeCollision
 from raidpy.ionosphere.igrf13 import IGRF2d
 from raidpy.ionosphere.iri import IRI2d
 from raidpy.ionosphere.msise import MSISE2d
+from raidpy.phase import CalculatePhase
 
 
 class Ionosphere2d(object):

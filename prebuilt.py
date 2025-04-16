@@ -13,6 +13,7 @@ def setup_igrf():
         shutil.rmtree("igrf/.git")
     return
 
+
 def clean():
     if os.path.exists("dist/"):
         shutil.rmtree("dist/")

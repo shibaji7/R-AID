@@ -67,7 +67,8 @@ def calculate_sw_RL(Bo, Ne, nu, fo=30e6, nu_sw_r=1.0):
             (Ne * pconst["q_e"] ** 2 / (2 * pconst["m_e"] * w * pconst["eps0"] * nu_sw))
             * np.complex_(yx * C(1.5, yx) + (1j * 2.5 * C(2.5, yx)))
         )
-        R, L = np.abs(nR.imag * 8.68 * k * 1e3), np.abs(nL.imag * 8.68 * k * 1e3)
+        # R, L = np.abs(nR.imag * 8.68 * k * 1e3), np.abs(nL.imag * 8.68 * k * 1e3)
+        R, L = nR.real, nL.real
     else:
         R, L = np.nan, np.nan
     return R, L
@@ -108,14 +109,15 @@ def calculate_sw_OX(Bo, Ne, nu, fo=30e6, nu_sw_r=1.0):
 
         nO = np.sqrt(Aa / (Dd + Ee))
         nX = np.sqrt((Aa + Bb) / (Dd + Ee))
-        O, X = np.abs(nO.imag * 8.68 * k * 1e3), np.abs(nX.imag * 8.68 * k * 1e3)
+        # O, X = np.abs(nO.imag * 8.68 * k * 1e3), np.abs(nX.imag * 8.68 * k * 1e3)
+        O, X = nO.real, nX.real
     else:
         O, X = np.nan, np.nan
     return O, X
 
 
 @dataclass
-class Absorption:
+class Phase:
     mode_O: np.array = None
     mode_X: np.array = None
     mode_R: np.array = None
@@ -125,40 +127,40 @@ class Absorption:
 
 @dataclass
 class AppletonHartree:
-    ft: Absorption = None
-    sn: Absorption = None
-    av_cc: Absorption = None
-    av_mb: Absorption = None
+    ft: Phase = None
+    sn: Phase = None
+    av_cc: Phase = None
+    av_mb: Phase = None
 
     @staticmethod
     def init():
         ah = AppletonHartree()
         (ah.ft, ah.sn, ah.av_cc, ah.av_mb) = (
-            Absorption(),
-            Absorption(),
-            Absorption(),
-            Absorption(),
+            Phase(),
+            Phase(),
+            Phase(),
+            Phase(),
         )
         return ah
 
 
 @dataclass
 class SenWyller:
-    ft: Absorption = None
+    ft: Phase = None
 
     @staticmethod
     def init():
         sw = SenWyller()
-        sw.ft = Absorption()
+        sw.ft = Phase()
         return sw
 
 
 # ===================================================================================
-# This class is used to estimate O,X,R & L mode absorption height profile.
+# This class is used to estimate O,X,R & L mode phase height profile.
 # ===================================================================================
-class CalculateAbsorption(object):
+class CalculatePhase(object):
     """
-    This class is used to estimate O,X,R & L mode absorption height profile.
+    This class is used to estimate O,X,R & L mode phase height profile.
 
     Bo = geomagnetic field
     coll = collision frequency
@@ -194,7 +196,7 @@ class CalculateAbsorption(object):
         )
         x, jz = X, Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
-        self.ah.ft.no = np.abs(8.68 * self.k * 1e3 * n.imag)
+        self.ah.ft.no = n.real
 
         YL, YT = 0, (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w)
         nO, nX = (
@@ -208,15 +210,15 @@ class CalculateAbsorption(object):
             ),
         )
         self.ah.ft.mode_O, self.ah.ft.mode_X = (
-            np.abs(8.68 * self.k * 1e3 * nO.imag),
-            np.abs(8.68 * self.k * 1e3 * nX.imag),
+            nO.real,
+            nX.real,
         )
 
         YL, YT = (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w), 0
         nL, nR = np.sqrt(1 - (x / ((1 - jz) + YL))), np.sqrt(1 - (x / ((1 - jz) - YL)))
         self.ah.ft.mode_R, self.ah.ft.mode_L = (
-            np.abs(8.68 * self.k * 1e3 * nR.imag),
-            np.abs(8.68 * self.k * 1e3 * nL.imag),
+            nR.real,
+            nL.real,
         )
 
         # ========================================================
@@ -225,7 +227,7 @@ class CalculateAbsorption(object):
         Z = self.coll.nu_sn.total / self.w
         jz = Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
-        self.ah.sn.no = np.abs(8.68 * self.k * 1e3 * n.imag)
+        self.ah.sn.no = n.real
 
         YL, YT = 0, (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w)
         nO, nX = (
@@ -239,15 +241,15 @@ class CalculateAbsorption(object):
             ),
         )
         self.ah.sn.mode_O, self.ah.sn.mode_X = (
-            np.abs(8.68 * self.k * 1e3 * nO.imag),
-            np.abs(8.68 * self.k * 1e3 * nX.imag),
+            nO.real,
+            nX.real,
         )
 
         YL, YT = (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w), 0
         nL, nR = np.sqrt(1 - (x / ((1 - jz) + YL))), np.sqrt(1 - (x / ((1 - jz) - YL)))
         self.ah.sn.mode_R, self.ah.sn.mode_L = (
-            np.abs(8.68 * self.k * 1e3 * nR.imag),
-            np.abs(8.68 * self.k * 1e3 * nL.imag),
+            nR.real,
+            nL.real,
         )
 
         # =========================================================
@@ -256,7 +258,7 @@ class CalculateAbsorption(object):
         Z = self.coll.nu_av_cc / self.w
         jz = Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
-        self.ah.av_cc.no = np.abs(8.68 * self.k * 1e3 * n.imag)
+        self.ah.av_cc.no = n.real
 
         YL, YT = (0, (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w))
         nO, nX = (
@@ -270,15 +272,15 @@ class CalculateAbsorption(object):
             ),
         )
         self.ah.av_cc.mode_O, self.ah.av_cc.mode_X = (
-            np.abs(8.68 * self.k * 1e3 * nO.imag),
-            np.abs(8.68 * self.k * 1e3 * nX.imag),
+            nO.real,
+            nX.real,
         )
 
         YL, YT = (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w), 0
         nL, nR = np.sqrt(1 - (x / ((1 - jz) + YL))), np.sqrt(1 - (x / ((1 - jz) - YL)))
         self.ah.av_cc.mode_R, self.ah.av_cc.mode_L = (
-            np.abs(8.68 * self.k * 1e3 * nR.imag),
-            np.abs(8.68 * self.k * 1e3 * nL.imag),
+            nR.real,
+            nL.real,
         )
 
         # =========================================================
@@ -287,7 +289,7 @@ class CalculateAbsorption(object):
         Z = self.coll.nu_av_mb / self.w
         jz = Z * 1.0j
         n = np.sqrt(1 - (x / (1 - jz)))
-        self.ah.av_mb.no = np.abs(8.68 * self.k * 1e3 * n.imag)
+        self.ah.av_mb.no = n.real
 
         YL, YT = 0, (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w)
         nO, nX = (
@@ -301,8 +303,8 @@ class CalculateAbsorption(object):
             ),
         )
         self.ah.av_mb.mode_O, self.ah.av_mb.mode_X = (
-            np.abs(8.68 * self.k * 1e3 * nO.imag),
-            np.abs(8.68 * self.k * 1e3 * nX.imag),
+            nO.real,
+            nX.real,
         )
 
         YL, YT = (pconst["q_e"] * self.igrf["total"]) / (pconst["m_e"] * self.w), 0
@@ -311,8 +313,8 @@ class CalculateAbsorption(object):
             np.sqrt(1 - (x / ((1 - jz) - YL))),
         )
         self.ah.av_mb.mode_R, self.ah.av_mb.mode_L = (
-            np.abs(8.68 * self.k * 1e3 * nR.imag),
-            np.abs(8.68 * self.k * 1e3 * nL.imag),
+            nR.real,
+            nL.real,
         )
         return
 
