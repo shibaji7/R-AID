@@ -94,29 +94,4 @@ class Oblique(object):
         pol.save(fig_path)
         pol.close()
         logger.info(f"Saving files in {fig_path}")
-        return
-
-
-if __name__ == "__main__":
-    bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
-    bearing = utils.load_bearing_mat_file(bearing_file_loc)
-    rays_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_05MHz_SCurve/2024-04-08/wwv/sami3/w2naf/1700_rt.mat"
-    elv = 12
-    _, rays = utils.load_rays_mat_file(rays_file_loc)
-    ray = rays[elv]
-    ol = Oblique(
-        dt.datetime(2024, 4, 8, 17),
-        np.array(ray.ground_range),
-        np.array(ray.height),
-        bearing.rb,
-        bearing.olat,
-        bearing.olon,
-        bearing.freq.ravel().tolist()[0] * 1e6,
-        edens=np.array(ray.electron_density) * 1e6,  # To /m3
-    )
-    ol.plot_absorption(
-        np.array(ray.phase_path),
-        wave_disp_reltn="ah",
-        col_freq="av_mb",
-        text=r"Spot: wwv-w2naf / 5 Mhz, $\alpha=12^\circ$ / $\beta=\beta_{ah}(\nu_{av-mb})$",
-    )
+        return total_absorption

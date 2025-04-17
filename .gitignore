@@ -7,7 +7,7 @@ __pycache__/
 *.so
 
 # Remove IGRF
-igrf/
+igrf/*
 figures/
 
 # Distribution / packaging
