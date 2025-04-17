@@ -346,4 +346,3 @@ class CalculatePhase(object):
                 Bo[i], self.iri["edens"][i], nu[i], self.fo
             )
         return
-

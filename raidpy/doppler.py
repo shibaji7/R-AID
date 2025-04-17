@@ -11,11 +11,15 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "chakras4@erau.edu"
 __status__ = "Research"
 
+from dataclasses import dataclass
+
+import numpy as np
+from loguru import logger
 from scipy.signal import resample
+
 from raidpy.constants import *
 from raidpy.phase import Phase
 
-from dataclasses import dataclass
 
 @dataclass
 class Doppler:
@@ -23,6 +27,7 @@ class Doppler:
     wave_disp_reltn_form: str = None
     pt0: Phase = None
     pt1: Phase = None
+
 
 class ComputeKikuchiDoppler(object):
     """
@@ -43,7 +48,7 @@ class ComputeKikuchiDoppler(object):
         _run_=False,
     ):
         return
-    
+
 
 class ComputeDoppler(object):
     """
