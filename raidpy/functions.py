@@ -73,7 +73,7 @@ class Oblique(object):
         self.ray["ground_range"], self.ray["height"] = self.ground_range, self.height
         return
 
-    def get_datasets(
+    def get_absorption_datasets(
         self,
         wave_disp_reltn: str = "ah",
         col_freq: str = "sn",
@@ -97,7 +97,8 @@ class Oblique(object):
         col_freq: str = "sn",
         mode: str = "O",
     ):
-        ray = self.get_datasets(wave_disp_reltn, col_freq, mode)
+        ray = self.get_absorption_datasets(wave_disp_reltn, col_freq, mode)
+        phase_path = phase_path if phase_path is not None else ray.phase_path
         ray.fillna(0, inplace=True)
         total_absorption = np.trapz(ray["abs"], phase_path)
         logger.info(f"Total absorption {total_absorption} dB")
@@ -114,7 +115,7 @@ class Oblique(object):
     ):
         logger.info(f"Plotting for {self.date} for {wave_disp_reltn}:{col_freq}")
         pol = PlotOlRays(self.date)
-        ray = self.get_datasets(wave_disp_reltn, col_freq, mode)
+        ray = self.get_absorption_datasets(wave_disp_reltn, col_freq, mode)
         total_absorption = self.get_total_absorption_along_path(
             phase_path, wave_disp_reltn, col_freq, mode
         )
@@ -126,4 +127,35 @@ class Oblique(object):
         pol.save(fig_path)
         pol.close()
         logger.info(f"Saving files in {fig_path}")
+        return total_absorption
+
+    def get_phase_datasets(
+        self,
+        wave_disp_reltn: str = "ah",
+        col_freq: str = "sn",
+        mode: str = "O",
+    ):
+        p = getattr(
+            getattr(getattr(self.iono.cp, wave_disp_reltn), col_freq), f"mode_{mode}"
+        )
+        ray = (
+            self.ray_details.copy()
+            if self.ray_details is not None and len(self.ray_details) == len(self.ray)
+            else self.ray.copy()
+        )
+        ray["phase"] = p
+        return ray
+
+    def get_total_phase_along_path(
+        self,
+        phase_path: np.array,
+        wave_disp_reltn: str = "ah",
+        col_freq: str = "sn",
+        mode: str = "O",
+    ):
+        ray = self.get_phase_datasets(wave_disp_reltn, col_freq, mode)
+        phase_path = phase_path if phase_path is not None else ray.phase_path
+        ray.fillna(0, inplace=True)
+        total_absorption = np.trapz(ray["phase"], phase_path)
+        logger.info(f"Total phase {total_absorption} radian")
         return total_absorption

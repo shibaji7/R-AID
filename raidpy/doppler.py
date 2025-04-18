@@ -14,19 +14,23 @@ __status__ = "Research"
 from dataclasses import dataclass
 
 import numpy as np
-import pandas as pd
 from loguru import logger
 from scipy.signal import resample
 
 from raidpy.constants import *
+from raidpy.functions import Oblique
 
 
 @dataclass
 class Doppler:
     mode: str = None
-    wave_disp_reltn_form: str = None
-    pt0: pd.DataFrame = None
-    pt1: pd.DataFrame = None
+    wave_disp_reltn: str = None
+    col_freq: str = None
+    pt0: Oblique = None
+    pt1: Oblique = None
+    dp: float = np.nan
+    dv: float = np.nan
+    df: float = np.nan
 
 
 class ComputeDoppler(object):
@@ -41,24 +45,22 @@ class ComputeDoppler(object):
 
     def __init__(
         self,
-        pt0: pd.DataFrame,
-        pt1: pd.DataFrame,
+        pt0: Oblique,
+        pt1: Oblique,
         fo: float,
         del_t: float,
         _run_=False,
+        wave_disp_reltn: str = "ah",
+        col_freq: str = "sn",
         mode: str = "O",
-        wave_disp_reltn_form: str = "",
-        dop_analy: dict = dict(
-            n_sample=1000,
-        ),
     ):
         self.pt0 = pt0
         self.pt1 = pt1
         self.fo = fo
         self.del_t = del_t
-        self.wave_disp_reltn_form = wave_disp_reltn_form
+        self.wave_disp_reltn = wave_disp_reltn
+        self.col_freq = col_freq
         self.mode = mode
-        self.dop_analy = dop_analy
         self.w = 2 * np.pi * fo
         self.k = (2 * np.pi * fo) / pconst["c"]
         if _run_:
@@ -71,33 +73,26 @@ class ComputeDoppler(object):
             pt0=self.pt0,
             pt1=self.pt1,
             mode=self.mode,
-            wave_disp_reltn_form=self.wave_disp_reltn_form,
+            col_freq=self.col_freq,
+            wave_disp_reltn=self.wave_disp_reltn,
         )
         logger.info(
-            f"Solving Doppler for {self.wave_disp_reltn_form.upper()} Mode>{self.mode}"
+            f"Solving Doppler for {self.wave_disp_reltn.upper()}:{self.col_freq.upper()} Mode>{self.mode}"
         )
-        print(self.pt0.head(), self.pt1.head())
-        # p0, p1 = (
-        #     getattr(
-        #         self.pt0,
-        #         f"mode_{self.mode}",
-        #     ),
-        #     getattr(
-        #         self.pt1,
-        #         f"mode_{self.mode}",
-        #     ),
-        # )
-        # p0_resample, p1_resample = (
-        #     resample(p0, self.dop_analy["n_sample"]),
-        #     resample(p1, self.dop_analy["n_sample"]),
-        # )
-        # print(p0, p0_resample)
-        # dp, df = (
-        #     (p1_resample - p0_resample) / self.del_t,
-        #     (p1_resample - p1_resample) / (self.del_t * 4 * np.pi),
-        # )
-        # dv = df * pconst["c"] / (2 * self.fo)
-        return
+        p0, p1 = (
+            self.pt0.get_total_phase_along_path(
+                None, self.wave_disp_reltn, self.col_freq, self.mode
+            ),
+            self.pt1.get_total_phase_along_path(
+                None, self.wave_disp_reltn, self.col_freq, self.mode
+            ),
+        )
+        self.dop.dp, self.dop.df = (
+            (p0 - p1) / self.del_t,
+            (p0 - p1) / (self.del_t * 4 * np.pi),
+        )
+        self.dop.dv = self.dop.df * pconst["c"] / (2 * self.fo)
+        return self.dop
 
 
 class ComputeKikuchiDoppler(object):
@@ -112,10 +107,13 @@ class ComputeKikuchiDoppler(object):
 
     def __init__(
         self,
-        pt0: pd.DataFrame,
-        pt1: pd.DataFrame,
+        pt0: Oblique,
+        pt1: Oblique,
         fo: float,
         del_t: float,
         _run_=False,
+        wave_disp_reltn: str = "ah",
+        col_freq: str = "sn",
+        mode: str = "O",
     ):
         return

@@ -26,8 +26,10 @@ if __name__ == "__main__":
     )
     rays_file_locs.sort()
     elv = 30
-    paths, absorptions = [], []
-    for i, floc in enumerate(rays_file_locs[:2]):
+    wave_disp_reltn = "ah"
+    col_freq = "sn"
+    paths, absorptions, dop = [], [], []
+    for i, floc in enumerate(rays_file_locs):
         _, rays = utils.load_rays_mat_file(floc)
         ray = rays[elv]
         ol = Oblique(
@@ -42,9 +44,9 @@ if __name__ == "__main__":
             ray_details=ray,
         )
         t_abs = ol.plot_absorption(
-            np.array(ray.phase_path),
-            wave_disp_reltn="ah",
-            col_freq="sn",
+            None,
+            wave_disp_reltn=wave_disp_reltn,
+            col_freq=col_freq,
             text=r"Spot: wwv-w2naf / 10 Mhz, $\alpha=30^\circ$ / $\beta=\beta_{ah}(\nu_{sn})$",
             fig_path="figures/%04d.png" % i,
         )
@@ -56,16 +58,28 @@ if __name__ == "__main__":
     ax.plot(np.arange(len(absorptions)) * 5, absorptions, color="r", ms=2, marker=".")
     ax.set_ylabel("O-mode Absorption, dB")
     ax.set_xlabel("Minutes since 17 UT on 8 April 2024")
-    fig.savefig("figures/ts.png", bbox_inches="tight", facecolor=(1, 1, 1, 1))
+    fig.savefig(
+        "figures/ts_absorption.png", bbox_inches="tight", facecolor=(1, 1, 1, 1)
+    )
 
     from raidpy.doppler import ComputeDoppler
 
-    cd = ComputeDoppler(
-        paths[0].get_datasets("ah", "sn", "O"),
-        paths[1].get_datasets("ah", "sn", "O"),
-        fo=bearing.freq.ravel().tolist()[0] * 1e6,
-        del_t=300,
-        _run_=True,
-        mode="O",
-        wave_disp_reltn_form="ah:sn",
-    )
+    for i, floc in enumerate(rays_file_locs[:-1]):
+        cd = ComputeDoppler(
+            paths[i],
+            paths[1 + i],
+            fo=bearing.freq.ravel().tolist()[0] * 1e6,
+            del_t=300,
+            _run_=True,
+            mode="O",
+            wave_disp_reltn=wave_disp_reltn,
+            col_freq=col_freq,
+        )
+        dop.append(cd.dop.df)
+    print(dop)
+    fig = plt.figure(figsize=(6, 3), dpi=300)
+    ax = fig.add_subplot(111)
+    ax.plot(np.arange(len(dop)) * 5, dop, color="r", ms=2, marker=".")
+    ax.set_ylabel("Doppler, Hz")
+    ax.set_xlabel("Minutes since 17 UT on 8 April 2024")
+    fig.savefig("figures/ts_dop.png", bbox_inches="tight", facecolor=(1, 1, 1, 1))
