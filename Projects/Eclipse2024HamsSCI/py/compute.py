@@ -27,7 +27,7 @@ if __name__ == "__main__":
     rays_file_locs.sort()
     elv = 30
     paths, absorptions = [], []
-    for i, floc in enumerate(rays_file_locs):
+    for i, floc in enumerate(rays_file_locs[:2]):
         _, rays = utils.load_rays_mat_file(floc)
         ray = rays[elv]
         ol = Oblique(
@@ -39,6 +39,7 @@ if __name__ == "__main__":
             bearing.olon,
             bearing.freq.ravel().tolist()[0] * 1e6,
             edens=np.array(ray.electron_density) * 1e6,  # To /m3
+            ray_details=ray,
         )
         t_abs = ol.plot_absorption(
             np.array(ray.phase_path),
@@ -56,14 +57,15 @@ if __name__ == "__main__":
     ax.set_ylabel("O-mode Absorption, dB")
     ax.set_xlabel("Minutes since 17 UT on 8 April 2024")
     fig.savefig("figures/ts.png", bbox_inches="tight", facecolor=(1, 1, 1, 1))
-    # from raidpy.phase import ComputeDoppler
 
-    # cd = ComputeDoppler(
-    #     getattr(getattr(paths[0].iono.ca, "ah"), "sn"),
-    #     getattr(getattr(paths[1].iono.ca, "ah"), "sn"),
-    #     fo=bearing.freq.ravel().tolist()[0] * 1e6,
-    #     del_t=300,
-    #     _run_=True,
-    #     mode="O",
-    #     wave_disp_reltn_form="ah:sn",
-    # )
+    from raidpy.doppler import ComputeDoppler
+
+    cd = ComputeDoppler(
+        paths[0].get_datasets("ah", "sn", "O"),
+        paths[1].get_datasets("ah", "sn", "O"),
+        fo=bearing.freq.ravel().tolist()[0] * 1e6,
+        del_t=300,
+        _run_=True,
+        mode="O",
+        wave_disp_reltn_form="ah:sn",
+    )

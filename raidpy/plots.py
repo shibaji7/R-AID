@@ -79,7 +79,7 @@ class PlotOlRays(object):
         tag_distance: float = -1,
         text=None,
     ):
-        points = np.array([df.grange, df.height]).T.reshape(-1, 1, 2)
+        points = np.array([df.ground_range, df.height]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         cmap, label, norm = self.get_parameter(kind)
@@ -87,9 +87,9 @@ class PlotOlRays(object):
         lc.set_array(df[kind])
         lc.set_linewidth(2)
         line = self.ax.add_collection(lc)
-        self.ax.plot(df.grange, df.height, c="k", zorder=3, alpha=0.7, ls="-", lw=0.1)
-        # self.fig.colorbar(line, ax=self.ax)
-
+        self.ax.plot(
+            df.ground_range, df.height, c="k", zorder=3, alpha=0.7, ls="-", lw=0.1
+        )
         pos = self.ax.get_position()
         cpos = [
             pos.x1 + 0.025,

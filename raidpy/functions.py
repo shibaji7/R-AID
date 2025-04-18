@@ -41,9 +41,10 @@ class Oblique(object):
         igrf2d: dict = None,
         msise: dict = None,
         edens: np.array = None,
+        ray_details: pd.DataFrame = pd.DataFrame(),
     ):
         self.date = date
-        self.grange = grange
+        self.ground_range = grange
         self.height = height
         self.ray_bearing = ray_bearing
         self.origin_lat = origin_lat
@@ -51,14 +52,16 @@ class Oblique(object):
         self.edens = edens
         self.fo = fo
         self.ion2d = ion2d
+        self.msise = msise
         self.igrf2d = igrf2d
+        self.ray_details = ray_details
         self.initialize()
         return
 
     def initialize(self):
         logger.info(f"Initialize for {self.date}")
         self.glats, self.glons = utils.create_lat_lon_from_routes(
-            self.grange, self.ray_bearing, self.origin_lat, self.origin_lon
+            self.ground_range, self.ray_bearing, self.origin_lat, self.origin_lon
         )
         self.galts = np.array(self.height)
         self.iono = Ionosphere2d(self.date, self.glats, self.glons, self.galts, self.fo)
@@ -67,8 +70,38 @@ class Oblique(object):
             self.iono.iri_block.iri["edens"] = self.edens
         self.iono.compute()
         self.ray = pd.DataFrame()
-        self.ray["grange"], self.ray["height"] = self.grange, self.height
+        self.ray["ground_range"], self.ray["height"] = self.ground_range, self.height
         return
+
+    def get_datasets(
+        self,
+        wave_disp_reltn: str = "ah",
+        col_freq: str = "sn",
+        mode: str = "O",
+    ):
+        a = getattr(
+            getattr(getattr(self.iono.ca, wave_disp_reltn), col_freq), f"mode_{mode}"
+        )
+        ray = (
+            self.ray_details.copy()
+            if self.ray_details is not None and len(self.ray_details) == len(self.ray)
+            else self.ray.copy()
+        )
+        ray["abs"] = a
+        return ray
+
+    def get_total_absorption_along_path(
+        self,
+        phase_path: np.array,
+        wave_disp_reltn: str = "ah",
+        col_freq: str = "sn",
+        mode: str = "O",
+    ):
+        ray = self.get_datasets(wave_disp_reltn, col_freq, mode)
+        ray.fillna(0, inplace=True)
+        total_absorption = np.trapz(ray["abs"], phase_path)
+        logger.info(f"Total absorption {total_absorption} dB")
+        return total_absorption
 
     def plot_absorption(
         self,
@@ -81,13 +114,12 @@ class Oblique(object):
     ):
         logger.info(f"Plotting for {self.date} for {wave_disp_reltn}:{col_freq}")
         pol = PlotOlRays(self.date)
-        self.ray["abs"] = getattr(
-            getattr(getattr(self.iono.ca, wave_disp_reltn), col_freq), f"mode_{mode}"
+        ray = self.get_datasets(wave_disp_reltn, col_freq, mode)
+        total_absorption = self.get_total_absorption_along_path(
+            phase_path, wave_disp_reltn, col_freq, mode
         )
-        o = self.ray.copy().fillna(0)
-        total_absorption = np.trapz(o["abs"], phase_path)
         logger.info(f"Total absorption {total_absorption} dB")
-        pol.lay_rays(self.ray, text=text + r" / $\int\beta$=%.1f dB" % total_absorption)
+        pol.lay_rays(ray, text=text + r" / $\int\beta$=%.1f dB" % total_absorption)
         dirc = fig_path.split("/")
         if len(dirc) > 1:
             os.makedirs("/".join(dirc[:-1]), exist_ok=True)
