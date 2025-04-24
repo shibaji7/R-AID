@@ -15,6 +15,11 @@ plt.rcParams["text.usetex"] = False
 
 
 if __name__ == "__main__":
+    import sys
+
+    sys.path.append("Projects/Eclipse2024HamsSCI/py")
+    import eclipse_plots as ep
+
     bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_10MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
     bearing = utils.load_bearing_mat_file(bearing_file_loc)
     rays_file_locs = [
@@ -61,25 +66,26 @@ if __name__ == "__main__":
     fig.savefig(
         "figures/ts_absorption.png", bbox_inches="tight", facecolor=(1, 1, 1, 1)
     )
+    ep.line_plots_all(paths)
 
-    from raidpy.doppler import ComputeDoppler
+    # from raidpy.doppler import ComputeDoppler
 
-    for i, floc in enumerate(rays_file_locs[:-1]):
-        cd = ComputeDoppler(
-            paths[i],
-            paths[1 + i],
-            fo=bearing.freq.ravel().tolist()[0] * 1e6,
-            del_t=300,
-            _run_=True,
-            mode="O",
-            wave_disp_reltn=wave_disp_reltn,
-            col_freq=col_freq,
-        )
-        dop.append(cd.dop.df)
-    print(dop)
-    fig = plt.figure(figsize=(6, 3), dpi=300)
-    ax = fig.add_subplot(111)
-    ax.plot(np.arange(len(dop)) * 5, dop, color="r", ms=2, marker=".")
-    ax.set_ylabel("Doppler, Hz")
-    ax.set_xlabel("Minutes since 17 UT on 8 April 2024")
-    fig.savefig("figures/ts_dop.png", bbox_inches="tight", facecolor=(1, 1, 1, 1))
+    # for i, floc in enumerate(rays_file_locs[:-1]):
+    #     cd = ComputeDoppler(
+    #         paths[i],
+    #         paths[1 + i],
+    #         fo=bearing.freq.ravel().tolist()[0] * 1e6,
+    #         del_t=300,
+    #         _run_=True,
+    #         mode="O",
+    #         wave_disp_reltn=wave_disp_reltn,
+    #         col_freq=col_freq,
+    #     )
+    #     dop.append(cd.dop.df)
+    # print(dop)
+    # fig = plt.figure(figsize=(6, 3), dpi=300)
+    # ax = fig.add_subplot(111)
+    # ax.plot(np.arange(len(dop)) * 5, dop, color="r", ms=2, marker=".")
+    # ax.set_ylabel("Doppler, Hz")
+    # ax.set_xlabel("Minutes since 17 UT on 8 April 2024")
+    # fig.savefig("figures/ts_dop.png", bbox_inches="tight", facecolor=(1, 1, 1, 1))
