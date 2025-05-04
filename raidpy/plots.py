@@ -62,7 +62,7 @@ class PlotOlRays(object):
                 r"$\eta$",
                 colors.Normalize(0.9, 1.0),
             )
-        if kind == "abs":
+        if kind == "los":
             cmap, label, norm = (
                 "Reds",
                 r"$\beta$, dB",
@@ -73,7 +73,7 @@ class PlotOlRays(object):
     def lay_rays(
         self,
         df,
-        kind="abs",
+        kind="los",
         zoomed_in=[],
         elv_range=[],
         tag_distance: float = -1,
@@ -130,7 +130,7 @@ class PlotOlRays(object):
         self.ax = self.fig.add_subplot(111)
         self.ax.set_ylabel(r"Height [km]")
         self.ax.set_xlabel(r"Ground range [km]")
-        self.ax.set_xlim(self.xlim if len(self.xlim) == 2 else [0, 2000])
+        self.ax.set_xlim(self.xlim if len(self.xlim) == 2 else [0, 3000])
         self.ax.set_ylim(self.ylim if len(self.ylim) == 2 else [0, 400])
         return
 

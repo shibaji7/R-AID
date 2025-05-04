@@ -79,7 +79,7 @@ class Oblique(object):
         col_freq: str = "sn",
         mode: str = "O",
     ):
-        a = getattr(
+        _a = getattr(
             getattr(getattr(self.iono.ca, wave_disp_reltn), col_freq), f"mode_{mode}"
         )
         ray = (
@@ -87,7 +87,12 @@ class Oblique(object):
             if self.ray_details is not None and len(self.ray_details) == len(self.ray)
             else self.ray.copy()
         )
-        ray["abs"] = a
+        ray["los"] = _a
+        if not hasattr(self, "total_free_path_los"):
+            self.total_free_path_los = 10 * np.log10(
+                1.0 / ray.geometric_distance.iloc[-1]
+            )
+            logger.info(f"Total free path LoS {self.total_free_path_los}")
         return ray
 
     def get_total_absorption_along_path(
@@ -100,7 +105,7 @@ class Oblique(object):
         ray = self.get_absorption_datasets(wave_disp_reltn, col_freq, mode)
         phase_path = phase_path if phase_path is not None else ray.phase_path
         ray.fillna(0, inplace=True)
-        total_absorption = np.trapz(ray["abs"], phase_path)
+        total_absorption = np.trapz(ray.los, phase_path)
         logger.info(f"Total absorption {total_absorption} dB")
         return total_absorption
 
@@ -156,6 +161,6 @@ class Oblique(object):
         ray = self.get_phase_datasets(wave_disp_reltn, col_freq, mode)
         phase_path = phase_path if phase_path is not None else ray.phase_path
         ray.fillna(0, inplace=True)
-        total_absorption = np.trapz(ray["phase"], phase_path)
-        logger.info(f"Total phase {total_absorption} radian")
-        return total_absorption
+        total_phase = np.trapz(ray["phase"], phase_path)
+        logger.info(f"Total phase {total_phase} radian")
+        return total_phase
