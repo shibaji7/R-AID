@@ -68,6 +68,12 @@ class PlotOlRays(object):
                 r"$\beta$, dB",
                 colors.Normalize(0, 1e-2),
             )
+        if kind == "phase":
+            cmap, label, norm = (
+                "RdBu",
+                r"$\theta$ [Deg]",
+                colors.Normalize(-np.pi, np.pi),
+            )
         return cmap, label, norm
 
     def lay_rays(

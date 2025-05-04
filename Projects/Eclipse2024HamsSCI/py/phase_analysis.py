@@ -51,7 +51,7 @@ if __name__ == "__main__":
     dist = get_w2naf_dist()
     n_jobs = 30
     dates = [
-        dt.datetime(2024, 4, 8, 17) + dt.timedelta(minutes=i * 5) for i in range(60)
+        dt.datetime(2024, 4, 8, 17) + dt.timedelta(minutes=i * 5) for i in range(1)
     ]
     nhop, tfreq = 2, 10
     folder = os.path.join(
@@ -63,6 +63,14 @@ if __name__ == "__main__":
     bearing = utils.load_bearing_mat_file(bearing_file_loc)
     tfreq = bearing.freq.ravel()[0]
     logger.info(f"tFreq: {tfreq}")
+
+    phase = dict(
+        ah_sn=[],
+        sw_ft=[],
+        ah_mb=[],
+        ah_cc=[],
+    )
+    dirc = f"figures/2024GAE/phase/{tfreq}_{nhop}"
 
     for d in dates:
         logger.info(f"Date: {d}")
@@ -80,15 +88,33 @@ if __name__ == "__main__":
             delayed(create_ol)(e, rays[e], b=bearing, d=d) for e in tqdm(elvs)
         )
 
-        pl = PlotOlRays(d, ylim=[0, 250], xlim=[0, 3000])
-        dirc = f"figures/2024GAE/phase/"
+        phs = np.array(
+            [
+                [
+                    ol.get_total_phase_along_path(None),
+                    ol.get_total_phase_along_path(None, "ah", "av_cc"),
+                    ol.get_total_phase_along_path(None, "ah", "av_mb"),
+                    ol.get_total_phase_along_path(None, "sw", "ft"),
+                ]
+                for ol in ols
+            ]
+        )
+        phase["ah_sn"].append(np.median(phs[:, 0]))
+        phase["ah_cc"].append(np.median(phs[:, 1]))
+        phase["ah_mb"].append(np.median(phs[:, 2]))
+        phase["sw_ft"].append(np.median(phs[:, 3]))
 
-        os.makedirs(dirc, exist_ok=True)
-        for i, e, ol in zip(range(len(ols)), elvs, ols):
-            ray = ol.get_absorption_datasets(wave_disp_reltn, col_freq, mode)
-            txt = f"Spot: wwv-w2naf / {tfreq} MHz " + r"/ $\beta=\beta_{ah}(\nu_{sn})$"
-            pl.lay_rays(
-                ray, text=txt if i == 0 else "", tag_distance=dist if i == 0 else -1
-            )
-        pl.save(dirc + f"{d.strftime('%H%M')}.png")
-        pl.close()
+        if not os.path.exists(dirc + f"/{d.strftime('%H%M')}.png"):
+            pl = PlotOlRays(d, ylim=[0, 250], xlim=[0, 3000])
+            os.makedirs(dirc, exist_ok=True)
+            for i, e, ol in zip(range(len(ols)), elvs, ols):
+                ray = ol.get_phase_datasets(wave_disp_reltn, col_freq, mode)
+                txt = f"Spot: wwv-w2naf / {tfreq} MHz " + r"/ $\beta=\beta_{ah}(\nu_{sn})$"
+                pl.lay_rays(
+                    ray,
+                    kind="phase",
+                    text=txt if i == 0 else "",
+                    tag_distance=dist if i == 0 else -1,
+                )
+            pl.save(dirc + f"/{d.strftime('%H%M')}.png")
+            pl.close()
