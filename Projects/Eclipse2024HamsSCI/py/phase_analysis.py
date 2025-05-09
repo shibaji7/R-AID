@@ -51,9 +51,9 @@ if __name__ == "__main__":
     dist = get_w2naf_dist()
     n_jobs = 30
     dates = [
-        dt.datetime(2024, 4, 8, 17) + dt.timedelta(minutes=i * 5) for i in range(1)
+        dt.datetime(2024, 4, 8, 17) + dt.timedelta(minutes=i * 5) for i in range(60)
     ]
-    nhop, tfreq = 2, 10
+    nhop, tfreq = 5, 5
     folder = os.path.join(
         "/home/chakras4/OneDrive/trace/outputs/",
         "GAE2024_SAMI3_w2naf_%02dHop_%02dMHz/" % (nhop, tfreq),
@@ -99,17 +99,17 @@ if __name__ == "__main__":
                 for ol in ols
             ]
         )
-        phase["ah_sn"].append(np.median(phs[:, 0]))
-        phase["ah_cc"].append(np.median(phs[:, 1]))
-        phase["ah_mb"].append(np.median(phs[:, 2]))
-        phase["sw_ft"].append(np.median(phs[:, 3]))
+        phase["ah_sn"].append(np.mod(np.median(phs[:, 0]), 2*np.pi))
+        phase["ah_cc"].append(np.mod(np.median(phs[:, 1]), 2*np.pi))
+        phase["ah_mb"].append(np.mod(np.median(phs[:, 2]), 2*np.pi))
+        phase["sw_ft"].append(np.mod(np.median(phs[:, 3]), 2*np.pi))
 
         if not os.path.exists(dirc + f"/{d.strftime('%H%M')}.png"):
             pl = PlotOlRays(d, ylim=[0, 250], xlim=[0, 3000])
             os.makedirs(dirc, exist_ok=True)
             for i, e, ol in zip(range(len(ols)), elvs, ols):
                 ray = ol.get_phase_datasets(wave_disp_reltn, col_freq, mode)
-                txt = f"Spot: wwv-w2naf / {tfreq} MHz " + r"/ $\beta=\beta_{ah}(\nu_{sn})$"
+                txt = f"Spot: wwv-w2naf / {tfreq} MHz " + r"/ $\theta=\theta_{ah}(\nu_{sn})$"
                 pl.lay_rays(
                     ray,
                     kind="phase",
@@ -118,3 +118,48 @@ if __name__ == "__main__":
                 )
             pl.save(dirc + f"/{d.strftime('%H%M')}.png")
             pl.close()
+
+    fig = plt.figure(figsize=(6, 3), dpi=300)
+    ax = fig.add_subplot(111)
+    ax.plot(
+        np.arange(len(phase["ah_sn"])) * 5,
+        phase["ah_sn"],
+        color="r",
+        ms=2,
+        marker=".",
+        ls="-",
+        label=r"$\theta_{ah}(\nu_{sn})$",
+    )
+    ax.plot(
+        np.arange(len(phase["ah_sn"])) * 5,
+        phase["ah_cc"],
+        color="g",
+        ms=2,
+        marker=".",
+        ls="-",
+        label=r"$\theta_{ah}(\nu_{av-cc})$",
+    )
+    ax.plot(
+        np.arange(len(phase["ah_sn"])) * 5,
+        phase["ah_mb"],
+        color="b",
+        ms=2,
+        marker=".",
+        ls="-",
+        label=r"$\theta_{ah}(\nu_{av-mb})$",
+    )
+    ax.plot(
+        np.arange(len(phase["ah_sn"])) * 5,
+        phase["sw_ft"],
+        color="k",
+        ms=2,
+        marker=".",
+        ls="-",
+        label=r"$\theta_{sw}(\nu_{ft})$",
+    )
+    ax.legend(loc=2)
+    ax.set_ylabel("O-mode Phase, rads")
+    ax.set_xlabel("Minutes since 17 UT on 8 April 2024")
+    fig.savefig(
+        dirc + "/ts_absorption.png", bbox_inches="tight", facecolor=(1, 1, 1, 1)
+    )
