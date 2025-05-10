@@ -14,7 +14,6 @@ __status__ = "Research"
 import datetime as dt
 
 import matplotlib.pyplot as plt
-import scienceplots
 
 plt.style.use(["science", "ieee"])
 plt.rcParams["font.family"] = "sans-serif"

@@ -1,10 +1,8 @@
 import datetime as dt
-import glob
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scienceplots
 from geopy.distance import great_circle as GC
 from joblib import Parallel, delayed
 from loguru import logger
@@ -45,7 +43,6 @@ if __name__ == "__main__":
     import sys
 
     sys.path.append("Projects/Eclipse2024HamsSCI/py")
-    import eclipse_plots as ep
 
     wave_disp_reltn, col_freq, mode = "ah", "sn", "O"
     dist = get_w2naf_dist()
@@ -99,17 +96,20 @@ if __name__ == "__main__":
                 for ol in ols
             ]
         )
-        phase["ah_sn"].append(np.mod(np.median(phs[:, 0]), 2*np.pi))
-        phase["ah_cc"].append(np.mod(np.median(phs[:, 1]), 2*np.pi))
-        phase["ah_mb"].append(np.mod(np.median(phs[:, 2]), 2*np.pi))
-        phase["sw_ft"].append(np.mod(np.median(phs[:, 3]), 2*np.pi))
+        phase["ah_sn"].append(np.mod(np.median(phs[:, 0]), 2 * np.pi))
+        phase["ah_cc"].append(np.mod(np.median(phs[:, 1]), 2 * np.pi))
+        phase["ah_mb"].append(np.mod(np.median(phs[:, 2]), 2 * np.pi))
+        phase["sw_ft"].append(np.mod(np.median(phs[:, 3]), 2 * np.pi))
 
         if not os.path.exists(dirc + f"/{d.strftime('%H%M')}.png"):
             pl = PlotOlRays(d, ylim=[0, 250], xlim=[0, 3000])
             os.makedirs(dirc, exist_ok=True)
             for i, e, ol in zip(range(len(ols)), elvs, ols):
                 ray = ol.get_phase_datasets(wave_disp_reltn, col_freq, mode)
-                txt = f"Spot: wwv-w2naf / {tfreq} MHz " + r"/ $\theta=\theta_{ah}(\nu_{sn})$"
+                txt = (
+                    f"Spot: wwv-w2naf / {tfreq} MHz "
+                    + r"/ $\theta=\theta_{ah}(\nu_{sn})$"
+                )
                 pl.lay_rays(
                     ray,
                     kind="phase",

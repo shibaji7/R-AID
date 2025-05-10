@@ -1,9 +1,7 @@
 import datetime as dt
-import glob
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scienceplots
 
 from raidpy import utils
 from raidpy.functions import Oblique
@@ -18,7 +16,6 @@ if __name__ == "__main__":
     import sys
 
     sys.path.append("Projects/Eclipse2024HamsSCI/py")
-    import eclipse_plots as ep
 
     bearing_file_loc = "/home/chakras4/OneDrive/trace/outputs/April2024_SAMI3_eclipse_hamsci_10MHz_SCurve/2024-04-08/wwv/sami3/w2naf/bearing.mat"
     bearing = utils.load_bearing_mat_file(bearing_file_loc)

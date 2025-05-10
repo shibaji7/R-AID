@@ -15,7 +15,6 @@ from dataclasses import dataclass
 
 import numpy as np
 from loguru import logger
-from scipy.signal import resample
 
 from raidpy.constants import *
 from raidpy.functions import Oblique

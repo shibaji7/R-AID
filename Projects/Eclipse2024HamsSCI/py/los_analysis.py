@@ -1,10 +1,8 @@
 import datetime as dt
-import glob
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scienceplots
 from geopy.distance import great_circle as GC
 from joblib import Parallel, delayed
 from loguru import logger
@@ -45,7 +43,6 @@ if __name__ == "__main__":
     import sys
 
     sys.path.append("Projects/Eclipse2024HamsSCI/py")
-    import eclipse_plots as ep
 
     wave_disp_reltn, col_freq, mode = "ah", "sn", "O"
     dist = get_w2naf_dist()

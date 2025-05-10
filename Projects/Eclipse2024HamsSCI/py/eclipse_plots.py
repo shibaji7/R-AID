@@ -1,12 +1,8 @@
-import datetime as dt
-import glob
 from typing import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scienceplots
 
-from raidpy import utils
 from raidpy.functions import Oblique
 
 plt.style.use(["science", "ieee"])
