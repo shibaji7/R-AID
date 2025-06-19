@@ -75,7 +75,6 @@ dependencies:
       - pymap3d==3.1.0
       - pymsis==0.10.0
       - pyparsing==3.2.3
-      - pyraid==0.1
       - python-dateutil==2.9.0.post0
       - pytz==2025.2
       - readme-renderer==44.0
